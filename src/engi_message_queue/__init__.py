@@ -1,14 +1,17 @@
 import json
 import logging
 import os
+from datetime import datetime
 
 import boto3
 import coloredlogs
 
 sns_client = boto3.client("sns")
 sqs_client = boto3.client("sqs")
+sts_client = boto3.client("sts")
 
 AWS_REGION = boto3.session.Session().region_name
+AWS_ACCOUNT = sts_client.get_caller_identity()["Account"]
 ENGI_MESSAGE_QUEUE_APP_NAME = os.environ["ENGI_MESSAGE_QUEUE_APP_NAME"]
 
 
@@ -30,6 +33,18 @@ def setup_logging(log_level=logging.INFO):
 
 
 log = setup_logging()
+
+
+def get_sns_arn(name):
+    return f"arn:aws:sns:{AWS_REGION}:{AWS_ACCOUNT}:{name}"
+
+
+def get_sqs_url(name):
+    return f"{sqs_client.meta._endpoint_url}/{AWS_ACCOUNT}/{name}"
+
+
+def get_topic_arn(queue_url):
+    return get_sns_arn(queue_url.split("/")[-1])
 
 
 def allow_all_to_publish_to_sns(topic_arn):
@@ -83,6 +98,9 @@ class NullFanout(object):
 
     def receive(self, **_):
         yield
+
+    def publish(self, *_, **__):
+        pass
 
     def __exit__(self, *_):
         pass
