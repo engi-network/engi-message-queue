@@ -4,10 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-boto3 = {extras = ["crt"], version = "*"}
 coloredlogs = "*"
 celery = {extras = ["sqs"], version = "*"}
 message-queue-engi = {editable = true, path = "."}
+boto3 = {version = "==1.24.60", extras = ["crt"]}
 
 [dev-packages]
 
