@@ -215,6 +215,7 @@ class SNSFanoutSQS(object):
         return self.sns.publish(TopicArn=self.topic_arn, Message=json.dumps(d), **kwargs)
 
     def delete_message(self, receipt_handle):
+        log.info(f"deleting {receipt_handle=}")
         return self.sqs.delete_message(
             QueueUrl=self.queue_url,
             ReceiptHandle=receipt_handle,
