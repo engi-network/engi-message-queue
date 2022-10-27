@@ -214,20 +214,27 @@ class SNSFanoutSQS(object):
     def publish(self, d, **kwargs):
         return self.sns.publish(TopicArn=self.topic_arn, Message=json.dumps(d), **kwargs)
 
-    def receive(self, wait_time=5):
+    def delete_message(self, receipt_handle):
+        return self.sqs.delete_message(
+            QueueUrl=self.queue_url,
+            ReceiptHandle=receipt_handle,
+        )
+
+    def receive(self, wait_time=5, max_messages=1, delete=True):
         r = self.sqs.receive_message(
             QueueUrl=self.queue_url,
-            MaxNumberOfMessages=1,
+            MaxNumberOfMessages=max_messages,
             WaitTimeSeconds=wait_time,
         )
-        for msg in r.get("Messages", []):
-            yield json.loads(json.loads(msg["Body"])["Message"])
-            receipt_handle = msg["ReceiptHandle"]
+        for m in r.get("Messages", []):
+            msg = json.loads(json.loads(m["Body"])["Message"])
+            receipt_handle = m["ReceiptHandle"]
             # log.info(f"{receipt_handle=}")
-            self.sqs.delete_message(
-                QueueUrl=self.queue_url,
-                ReceiptHandle=receipt_handle,
-            )
+            if delete:
+                yield msg
+                self.delete_message(receipt_handle)
+            else:
+                yield msg, receipt_handle
 
     def cleanup(self):
         if self.topic_exists():
