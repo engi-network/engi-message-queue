@@ -21,11 +21,11 @@ def get_name(env=None):
     return f"{ENGI_MESSAGE_QUEUE_APP_NAME}-{env}"
 
 
-def setup_logging(log_level=logging.INFO):
-    logger = logging.getLogger()
+def setup_logging(name=get_name(), log_level=logging.INFO):
+    logger = logging.getLogger(name)
 
     # set log format to display the logger name to hunt down verbose logging modules
-    fmt = "%(asctime)s %(name)-25s %(levelname)-8s %(message)s"
+    fmt = "%(asctime)s %(name)s %(levelname)s %(message)s"
 
     coloredlogs.install(level=log_level, fmt=fmt, logger=logger)
 
